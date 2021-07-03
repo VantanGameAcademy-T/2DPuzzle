@@ -7,10 +7,81 @@ public class Bird : MonoBehaviour
     // 鳥のプレハブを格納する配列
     public GameObject[] birdPrefabs;
 
+    // 連鎖判定用の距離
+    const float birdDistance = 1.4f;
+    // クリックされた鳥を格納
+    private GameObject firstBird;
+    private GameObject lastBird;
+    private string currentName;
+    List<GameObject> removableBirdList = new List<GameObject>();
+
     // Start is called before the first frame update
     void Start()
     {
+        TouchManager.Began += (info) =>
+        {
+            // クリック地点でヒットしているオブジェクトを取得
+            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(info.screenPoint),
+                Vector2.zero);
+            if (hit.collider)
+            {
+                GameObject hitObj = hit.collider.gameObject;
+                // ヒットしたオブジェクトのtagを判別し初期化
+                if (hitObj.tag == "Bird")
+                {
+                    firstBird = hitObj;
+                    lastBird = hitObj;
+                    currentName = hitObj.name;
+                    removableBirdList = new List<GameObject>();
+                    PushToBirdList(hitObj);
+                }
+            }
+        };
+        TouchManager.Moved += (info) =>
+        {
+            if (!firstBird) {
+                return;
+            }
+            // クリック地点でヒットしているオブジェクトを取得
+            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(info.screenPoint),
+                Vector2.zero);
+            if (hit.collider)
+            {
+                GameObject hitObj = hit.collider.gameObject;
+                // ヒットしたオブジェクトのtagが鳥、尚且名前が一緒、
+                // 尚且最後にhitしたオブジェクトと違う、尚且リストに格納されていない
+                if (hitObj.tag == "Bird" && hitObj.name == currentName
+                && hitObj != lastBird && 0 > removableBirdList.IndexOf(hitObj))
+                {
+                    lastBird = hitObj;
+                    PushToBirdList(hitObj);
+                }
+            }
+        };
+        TouchManager.Ended += (info) =>
+        {
+            foreach (GameObject obj in removableBirdList)
+            {
+                ChangeColor(obj, 1.0f);
+            }
+            removableBirdList = new List<GameObject>();
+            firstBird = null;
+            lastBird = null;
+        };
         StartCoroutine(DropBirds(50));
+    }
+    private void PushToBirdList(GameObject obj)
+    {
+        removableBirdList.Add(obj);
+        ChangeColor(obj, 0.5f);
+    }
+    private void ChangeColor(GameObject obj, float transparency)
+    {
+        SpriteRenderer renderer = obj.GetComponent<SpriteRenderer>();
+        renderer.color = new Color(renderer.color.r, 
+            renderer.color.g,
+            renderer.color.b,
+            transparency);
     }
 
     IEnumerator DropBirds(int count)
