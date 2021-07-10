@@ -5,18 +5,22 @@ using UnityEngine;
 public class Bird : MonoBehaviour
 {
     // 鳥のプレハブを格納する配列
-    public GameObject[] birdPrefabs;
+    public GameObject[] BirdPrefabs;
+
+    // 連鎖を消す最小数
+    [SerializeField]
+    private float removeBirdMinCount = 3;
 
     // 連鎖判定用の距離
     [SerializeField]
     private float birdDistance = 1.4f;
+
     // クリックされた鳥を格納
     private GameObject firstBird;
     private GameObject lastBird;
     private string currentName;
     List<GameObject> removableBirdList = new List<GameObject>();
 
-    // Start is called before the first frame update
     void Start()
     {
         TouchManager.Began += (info) =>
@@ -69,6 +73,16 @@ public class Bird : MonoBehaviour
         };
         TouchManager.Ended += (info) =>
         {
+            // リストの格納数を取り出す
+            int removeCount = removableBirdList.Count;
+            if (removeCount >= removeBirdMinCount)
+            {
+                foreach (GameObject obj in removableBirdList)
+                {
+                    Destroy(obj);
+                }
+            }
+
             foreach (GameObject obj in removableBirdList)
             {
                 ChangeColor(obj, 1.0f);
@@ -100,9 +114,9 @@ public class Bird : MonoBehaviour
             // ランダムで出現位置を作成
             Vector2 pos = new Vector2(Random.Range(-4.20f, 4.20f), 8.16f);
             // ランダムで鳥を出現させてIDを格納
-            int id = Random.Range(0, birdPrefabs.Length);
+            int id = Random.Range(0, BirdPrefabs.Length);
             // 鳥を発生させる
-            GameObject bird = (GameObject)Instantiate(birdPrefabs[id],
+            GameObject bird = (GameObject)Instantiate(BirdPrefabs[id],
                 pos,
                 Quaternion.AngleAxis(Random.Range(-40, 40), Vector3.forward));
             // 作成した鳥の名前を変更します
@@ -110,14 +124,5 @@ public class Bird : MonoBehaviour
             // 0.05秒待って次の処理へ
             yield return new WaitForSeconds(0.05f);
         }
-    }
-
-
-
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
