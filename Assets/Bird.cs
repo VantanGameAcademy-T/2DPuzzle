@@ -8,7 +8,8 @@ public class Bird : MonoBehaviour
     public GameObject[] birdPrefabs;
 
     // 連鎖判定用の距離
-    const float birdDistance = 1.4f;
+    [SerializeField]
+    private float birdDistance = 1.4f;
     // クリックされた鳥を格納
     private GameObject firstBird;
     private GameObject lastBird;
@@ -48,11 +49,19 @@ public class Bird : MonoBehaviour
             if (hit.collider)
             {
                 GameObject hitObj = hit.collider.gameObject;
+
                 // ヒットしたオブジェクトのtagが鳥、尚且名前が一緒、
                 // 尚且最後にhitしたオブジェクトと違う、尚且リストに格納されていない
                 if (hitObj.tag == "Bird" && hitObj.name == currentName
                 && hitObj != lastBird && 0 > removableBirdList.IndexOf(hitObj))
                 {
+                    // 距離を見る
+                    float distance = Vector2.Distance(hitObj.transform.position,
+                        lastBird.transform.position);
+                    if (distance > birdDistance)
+                    {
+                        return;
+                    }
                     lastBird = hitObj;
                     PushToBirdList(hitObj);
                 }
