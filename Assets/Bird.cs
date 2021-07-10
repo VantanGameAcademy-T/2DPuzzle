@@ -13,7 +13,7 @@ public class Bird : MonoBehaviour
 
     // 連鎖判定用の距離
     [SerializeField]
-    private float birdDistance = 1.4f;
+    private float birdDistance = 1.6f;
 
     // クリックされた鳥を格納
     private GameObject firstBird;
@@ -73,14 +73,17 @@ public class Bird : MonoBehaviour
         };
         TouchManager.Ended += (info) =>
         {
-            // リストの格納数を取り出す
+            // リストの格納数を取り出し最小数と比較する
             int removeCount = removableBirdList.Count;
             if (removeCount >= removeBirdMinCount)
             {
+                // 消す
                 foreach (GameObject obj in removableBirdList)
                 {
                     Destroy(obj);
                 }
+                // 補充
+                StartCoroutine(DropBirds(removeCount));
             }
 
             foreach (GameObject obj in removableBirdList)
